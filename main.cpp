@@ -12,13 +12,9 @@ int main(){
     const int window_width = 800, window_height = 600;
     bool boardGrid[height][width] = { false };
 
-    for (int i = 0; i < width; i++) {
-        boardGrid[height-1][i] = true;
-    }
-    for (int i = 0; i < height; i++) {
-        boardGrid[i][width / 2] = true;
-    }
-    
+    bool piece[2][2] = { true, true, true, true };
+    int pieceRow = 0, pieceCol = width / 2 - 1;
+
     // Start the SDL video subsystem before creating any windows.
     const int initResult = SDL_Init(SDL_INIT_VIDEO);
     if (initResult != 0) {
@@ -52,6 +48,22 @@ int main(){
         while(SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = false;
+            } 
+            else if (event.type == SDL_KEYDOWN) {
+                switch (event.key.keysym.sym) {
+                    case SDLK_LEFT:
+                        if (pieceCol > 0) 
+                            pieceCol--;
+                        break;
+                    case SDLK_RIGHT:
+                        if (pieceCol < width - 2)
+                            pieceCol++;
+                        break;
+                    case SDLK_DOWN:
+                        if (pieceRow < height - 2)
+                            pieceRow++;
+                        break;
+                }
             }
         }
 
@@ -68,10 +80,11 @@ int main(){
         SDL_SetRenderDrawColor(renderer, 23, 23, 22, 255);
         SDL_RenderFillRect(renderer, &board);
 
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                if (boardGrid[i][j]) {
-                    SDL_Rect cell = { boardX + j * cell_size, i * cell_size, cell_size, cell_size };
+
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                if (piece[i][j]) {
+                    SDL_Rect cell = { boardX + (pieceCol + j) * cell_size, (pieceRow + i) * cell_size, cell_size, cell_size };
                     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }

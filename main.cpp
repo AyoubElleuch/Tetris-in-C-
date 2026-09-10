@@ -2,17 +2,19 @@
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
+#include "game_logic.h"
 
 using namespace std;
 
 
-
 int main(){
-    const int width = 10, height = 20, cell_size = 30;
+    const int width = BoardWidth, height = BoardHeight, cell_size = 30;
     const int window_width = 800, window_height = 600;
+    // Store settled cells separately from the currently falling piece.
     bool boardGrid[height][width] = { false };
 
-    bool piece[2][2] = { true, true, true, true };
+    // The initial piece is a square with a position in board coordinates.
+    bool piece[PieceHeight][PieceWidth] = { true, true, true, true };
     int pieceRow = 0, pieceCol = width / 2 - 1;
 
     // Start the SDL video subsystem before creating any windows.
@@ -43,6 +45,10 @@ int main(){
     // Keep the application alive until the user closes the window.
     bool running = true;
 
+    // Gravity moves the piece once this many milliseconds have elapsed.
+    Uint32 lastDropTime = SDL_GetTicks();
+    const Uint32 dropInterval = 500;
+
     while(running){
         SDL_Event event;
         while(SDL_PollEvent(&event)) {
@@ -50,21 +56,36 @@ int main(){
                 running = false;
             } 
             else if (event.type == SDL_KEYDOWN) {
+                // Test each requested move before changing the piece position.
                 switch (event.key.keysym.sym) {
                     case SDLK_LEFT:
-                        if (pieceCol > 0) 
+                        if (canPlacePiece(boardGrid, piece, pieceRow, pieceCol - 1))
                             pieceCol--;
                         break;
                     case SDLK_RIGHT:
-                        if (pieceCol < width - 2)
+                        if (canPlacePiece(boardGrid, piece, pieceRow, pieceCol + 1))
                             pieceCol++;
                         break;
                     case SDLK_DOWN:
-                        if (pieceRow < height - 2)
+                        if (canPlacePiece(boardGrid, piece, pieceRow + 1, pieceCol)) {
                             pieceRow++;
+                        } else {
+                            lockPiece(boardGrid, piece, pieceRow, pieceCol);
+                        }
                         break;
                 }
             }
+        }
+
+        Uint32 currentTime = SDL_GetTicks();
+        if (currentTime - lastDropTime >= dropInterval) {
+            // Automatic falling uses the same collision rule as the Down key.
+            if (canPlacePiece(boardGrid, piece, pieceRow + 1, pieceCol)) {
+                pieceRow++;
+            } else {
+                lockPiece(boardGrid, piece, pieceRow, pieceCol);
+            }
+            lastDropTime = currentTime;
         }
 
         // Render the SDL background
@@ -80,9 +101,25 @@ int main(){
         SDL_SetRenderDrawColor(renderer, 23, 23, 22, 255);
         SDL_RenderFillRect(renderer, &board);
 
+        // Draw cells that have already landed on the board.
+        SDL_SetRenderDrawColor(renderer, 120, 120, 120, 255);
+        for (int boardRow = 0; boardRow < height; boardRow++) {
+            for (int boardColumn = 0; boardColumn < width; boardColumn++) {
+                if (boardGrid[boardRow][boardColumn]) {
+                    SDL_Rect cell = {
+                        boardX + boardColumn * cell_size,
+                        boardRow * cell_size,
+                        cell_size,
+                        cell_size
+                    };
+                    SDL_RenderFillRect(renderer, &cell);
+                }
+            }
+        }
 
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < 2; j++) {
+        // Draw the active piece separately so it can still move.
+        for (int i = 0; i < PieceHeight; i++) {
+            for (int j = 0; j < PieceWidth; j++) {
                 if (piece[i][j]) {
                     SDL_Rect cell = { boardX + (pieceCol + j) * cell_size, (pieceRow + i) * cell_size, cell_size, cell_size };
                     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);

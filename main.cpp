@@ -10,6 +10,14 @@ using namespace std;
 int main(){
     const int width = 10, height = 20, cell_size = 30;
     const int window_width = 800, window_height = 600;
+    bool boardGrid[height][width] = { false };
+
+    for (int i = 0; i < width; i++) {
+        boardGrid[height-1][i] = true;
+    }
+    for (int i = 0; i < height; i++) {
+        boardGrid[i][width / 2] = true;
+    }
     
     // Start the SDL video subsystem before creating any windows.
     const int initResult = SDL_Init(SDL_INIT_VIDEO);
@@ -59,6 +67,16 @@ int main(){
         SDL_Rect board = { boardX, 0, boardWidth, boardHeight };
         SDL_SetRenderDrawColor(renderer, 23, 23, 22, 255);
         SDL_RenderFillRect(renderer, &board);
+
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                if (boardGrid[i][j]) {
+                    SDL_Rect cell = { boardX + j * cell_size, i * cell_size, cell_size, cell_size };
+                    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+                    SDL_RenderFillRect(renderer, &cell);
+                }
+            }
+        }
 
         // Draw the grid lines for the board.
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);

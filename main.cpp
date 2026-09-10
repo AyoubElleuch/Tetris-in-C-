@@ -9,14 +9,19 @@
 int main(){
     const int width = BoardWidth, height = BoardHeight, cell_size = 30;
     const int window_width = 800, window_height = 600;
+    const int preview_width = PieceWidth * cell_size,
+                preview_height = PieceHeight * cell_size;
     // Store settled cells separately from the currently falling piece.
     bool boardGrid[height][width] = { false };
 
     bool piece[PieceHeight][PieceWidth] = {};
     int pieceRow = 0, pieceCol = width / 2 - 1;
 
-    chooseRandomPiece(piece);
+    bool nextPiece[PieceHeight][PieceWidth] = {};
 
+    chooseRandomPiece(piece);
+    chooseRandomPiece(nextPiece);
+    
     // Start the SDL video subsystem before creating any windows.
     const int initResult = SDL_Init(SDL_INIT_VIDEO);
     if (initResult != 0) {
@@ -75,6 +80,7 @@ int main(){
     const auto resetGame = [&]() {
         restartGame(boardGrid, pieceRow, pieceCol);
         chooseRandomPiece(piece);
+        chooseRandomPiece(nextPiece);
         gameOver = false;
         lastDropTime = SDL_GetTicks();
     };
@@ -118,7 +124,8 @@ int main(){
                         } else {
                             lockPiece(boardGrid, piece, pieceRow, pieceCol);
                             clearFullLines(boardGrid);
-                            chooseRandomPiece(piece);
+                            copyPiece(nextPiece, piece);
+                            chooseRandomPiece(nextPiece);
                             gameOver = isGameOver(boardGrid, piece);
                         }
                         break;
@@ -134,7 +141,8 @@ int main(){
             } else {
                 lockPiece(boardGrid, piece, pieceRow, pieceCol);
                 clearFullLines(boardGrid);
-                chooseRandomPiece(piece);
+                copyPiece(nextPiece, piece);
+                chooseRandomPiece(nextPiece);
                 gameOver = isGameOver(boardGrid, piece);
             }
             lastDropTime = currentTime;
@@ -143,6 +151,35 @@ int main(){
         // Render the SDL background
         SDL_SetRenderDrawColor(renderer, 8, 11, 64, 255);
         SDL_RenderClear(renderer);
+
+
+        // Render the Preview Piece
+        SDL_Rect previewRect = { 10, 10, preview_width, preview_height };
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderFillRect(renderer, &previewRect);
+
+        
+        // Draw the preview piece in the preview area.
+        for (int i = 0; i < PieceHeight; i++) {
+            for (int j = 0; j < PieceWidth; j++) {
+                if (nextPiece[i][j]) {
+                    SDL_Rect cell = { 10 + j * cell_size, 10 + i * cell_size, cell_size, cell_size };
+                    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+                    SDL_RenderFillRect(renderer, &cell);
+                }
+            }
+        }
+
+        // Draw the grid lines for the preview area.
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        for (int i = 0; i <= preview_width / cell_size; i++) {
+            int x = 10 + i * cell_size;
+            SDL_RenderDrawLine(renderer, x, 10, x, 10 + preview_height);
+        }
+        for (int i = 0; i <= preview_height / cell_size; i++) {
+            int y = 10 + i * cell_size;
+            SDL_RenderDrawLine(renderer, 10, y, 10 + preview_width, y);
+        }
 
         // Draw the board centered inside the window.
         const int boardWidth = width * cell_size;

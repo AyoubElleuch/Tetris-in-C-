@@ -37,3 +37,7 @@ bool validRotatePiece(
     int pieceCol);
 
 void rotatePiece(bool piece[PieceHeight][PieceWidth]);
+
+void copyPiece(
+    const bool source[PieceHeight][PieceWidth],
+    bool destination[PieceHeight][PieceWidth]);

@@ -126,3 +126,13 @@ void rotatePiece(bool piece[PieceHeight][PieceWidth]) {
         }
     }
 }
+
+void copyPiece(
+    const bool source[PieceHeight][PieceWidth],
+    bool destination[PieceHeight][PieceWidth]) {
+    for (int row = 0; row < PieceHeight; row++) {
+        for (int col = 0; col < PieceWidth; col++) {
+            destination[row][col] = source[row][col];
+        }
+    }
+}

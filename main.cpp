@@ -45,7 +45,13 @@ int main(){
         // Render the SDL background
         SDL_SetRenderDrawColor(renderer, 8, 11, 64, 255);
         SDL_RenderClear(renderer);
+
+        // Draw test rectangle
+        SDL_Rect rect = { 100, 100, 200, 150 };
+        SDL_SetRenderDrawColor(renderer, 12, 122, 69, 255);
+        SDL_RenderFillRect(renderer, &rect);
         SDL_RenderPresent(renderer);
+        
         SDL_Delay(16); // Limit the loop to roughly 60 iterations per second.
     }
 

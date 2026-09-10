@@ -2,10 +2,11 @@
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include "game_logic.h"
+#include "rendering.h"
 
 using namespace std;
-
 
 int main(){
     const int width = BoardWidth, height = BoardHeight, cell_size = 30;
@@ -24,11 +25,18 @@ int main(){
         return 1;
     }
 
+    if (TTF_Init() != 0) {
+        printf("TTF_Init failed: %s\n", TTF_GetError());
+        SDL_Quit();
+        return 1;
+    }
+
     // Create the initial play area; rendering will be added later.
     SDL_Window* window = SDL_CreateWindow("Tetris", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window_width, window_height, SDL_WINDOW_SHOWN);
 
     if (!window) {
         printf("SDL_CreateWindow failed: %s\n", SDL_GetError());
+        TTF_Quit();
         SDL_Quit();
         return 1;
     }
@@ -38,24 +46,58 @@ int main(){
     if(!renderer) {
         printf("SDL_CreateRenderer failed: %s\n", SDL_GetError());
         SDL_DestroyWindow(window);
+        TTF_Quit();
+        SDL_Quit();
+        return 1;
+    }
+
+    TTF_Font* overlayFont = TTF_OpenFont("C:/Windows/Fonts/arial.ttf", 46);
+    TTF_Font* buttonFont = TTF_OpenFont("C:/Windows/Fonts/arial.ttf", 24);
+    if (!overlayFont || !buttonFont) {
+        printf("TTF_OpenFont failed: %s\n", TTF_GetError());
+        if (overlayFont) TTF_CloseFont(overlayFont);
+        if (buttonFont) TTF_CloseFont(buttonFont);
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        TTF_Quit();
         SDL_Quit();
         return 1;
     }
 
     // Keep the application alive until the user closes the window.
     bool running = true;
+    bool gameOver = false;
+    const SDL_Rect restartButton = { window_width / 2 - 90, 360, 180, 52 };
 
     // Gravity moves the piece once this many milliseconds have elapsed.
     Uint32 lastDropTime = SDL_GetTicks();
-    const Uint32 dropInterval = 500;
+    const Uint32 dropInterval = 200;
 
-    while(running){
+    const auto resetGame = [&]() {
+        restartGame(boardGrid, pieceRow, pieceCol);
+        gameOver = false;
+        lastDropTime = SDL_GetTicks();
+    };
+
+    while (running) {
         SDL_Event event;
         while(SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = false;
-            } 
-            else if (event.type == SDL_KEYDOWN) {
+            }
+            else if (gameOver && event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+                const int mouseX = event.button.x;
+                const int mouseY = event.button.y;
+                if (mouseX >= restartButton.x && mouseX < restartButton.x + restartButton.w &&
+                    mouseY >= restartButton.y && mouseY < restartButton.y + restartButton.h) {
+                    resetGame();
+                }
+            }
+            else if (gameOver && event.type == SDL_KEYDOWN &&
+                     (event.key.keysym.sym == SDLK_r || event.key.keysym.sym == SDLK_RETURN)) {
+                resetGame();
+            }
+            else if (event.type == SDL_KEYDOWN && !gameOver) {
                 // Test each requested move before changing the piece position.
                 switch (event.key.keysym.sym) {
                     case SDLK_LEFT:
@@ -72,6 +114,7 @@ int main(){
                         } else {
                             lockPiece(boardGrid, piece, pieceRow, pieceCol);
                             clearFullLines(boardGrid);
+                            gameOver = isGameOver(boardGrid, piece);
                         }
                         break;
                 }
@@ -79,13 +122,14 @@ int main(){
         }
 
         Uint32 currentTime = SDL_GetTicks();
-        if (currentTime - lastDropTime >= dropInterval) {
+        if (currentTime - lastDropTime >= dropInterval && !gameOver) {
             // Automatic falling uses the same collision rule as the Down key.
             if (canPlacePiece(boardGrid, piece, pieceRow + 1, pieceCol)) {
                 pieceRow++;
             } else {
                 lockPiece(boardGrid, piece, pieceRow, pieceCol);
                 clearFullLines(boardGrid);
+                gameOver = isGameOver(boardGrid, piece);
             }
             lastDropTime = currentTime;
         }
@@ -120,12 +164,14 @@ int main(){
         }
 
         // Draw the active piece separately so it can still move.
-        for (int i = 0; i < PieceHeight; i++) {
-            for (int j = 0; j < PieceWidth; j++) {
-                if (piece[i][j]) {
-                    SDL_Rect cell = { boardX + (pieceCol + j) * cell_size, (pieceRow + i) * cell_size, cell_size, cell_size };
-                    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-                    SDL_RenderFillRect(renderer, &cell);
+        if (!gameOver) { 
+            for (int i = 0; i < PieceHeight; i++) {
+                for (int j = 0; j < PieceWidth; j++) {
+                    if (piece[i][j]) {
+                        SDL_Rect cell = { boardX + (pieceCol + j) * cell_size, (pieceRow + i) * cell_size, cell_size, cell_size };
+                        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+                        SDL_RenderFillRect(renderer, &cell);
+                    }
                 }
             }
         }
@@ -141,6 +187,22 @@ int main(){
             SDL_RenderDrawLine(renderer, boardX, y, boardX + boardWidth, y);
         }
 
+        if (gameOver) {
+            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 190);
+            SDL_Rect overlay = { boardX, 0, boardWidth, boardHeight };
+            SDL_RenderFillRect(renderer, &overlay);
+
+            drawText(renderer, overlayFont, "Game Over", window_width / 2, 245, { 255, 255, 255, 255 });
+
+            SDL_SetRenderDrawColor(renderer, 220, 48, 48, 255);
+            SDL_RenderFillRect(renderer, &restartButton);
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            SDL_RenderDrawRect(renderer, &restartButton);
+            drawText(renderer, buttonFont, "Restart", window_width / 2, restartButton.y + 12, { 255, 255, 255, 255 });
+            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+        }
+
         SDL_RenderPresent(renderer);
         
         SDL_Delay(16); // Limit the loop to roughly 60 iterations per second.
@@ -148,8 +210,11 @@ int main(){
 
 
     // Release SDL resources in the reverse order of setup.
+    TTF_CloseFont(buttonFont);
+    TTF_CloseFont(overlayFont);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    TTF_Quit();
     SDL_Quit();
     return 0;
 }

@@ -62,4 +62,23 @@ void clearFullLines(bool boardGrid[BoardHeight][BoardWidth]) {
             row--;
         }
     }
-} 
+}
+
+bool isGameOver(
+    const bool boardGrid[BoardHeight][BoardWidth],
+    const bool piece[PieceHeight][PieceWidth]) {
+        return !canPlacePiece(boardGrid, piece, 0, BoardWidth / 2 - 1);
+}
+    
+void restartGame(
+    bool boardGrid[BoardHeight][BoardWidth],
+    int& pieceRow,
+    int& pieceCol) {
+    for (int row = 0; row < BoardHeight; row++) {
+        for (int col = 0; col < BoardWidth; col++) {
+            boardGrid[row][col] = false;
+        }
+    }
+    pieceRow = 0;
+    pieceCol = BoardWidth / 2 - 1;
+}

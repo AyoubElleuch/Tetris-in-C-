@@ -18,3 +18,12 @@ void lockPiece(
     int& pieceCol);
 
 void clearFullLines(bool boardGrid[BoardHeight][BoardWidth]);
+
+bool isGameOver(
+    const bool boardGrid[BoardHeight][BoardWidth],
+    const bool piece[PieceHeight][PieceWidth]);
+
+void restartGame(
+    bool boardGrid[BoardHeight][BoardWidth],
+    int& pieceRow,
+    int& pieceCol);

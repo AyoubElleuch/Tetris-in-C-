@@ -71,6 +71,7 @@ int main(){
                             pieceRow++;
                         } else {
                             lockPiece(boardGrid, piece, pieceRow, pieceCol);
+                            clearFullLines(boardGrid);
                         }
                         break;
                 }
@@ -84,6 +85,7 @@ int main(){
                 pieceRow++;
             } else {
                 lockPiece(boardGrid, piece, pieceRow, pieceCol);
+                clearFullLines(boardGrid);
             }
             lastDropTime = currentTime;
         }

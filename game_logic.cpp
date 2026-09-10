@@ -38,3 +38,28 @@ void lockPiece(
     pieceRow = 0;
     pieceCol = BoardWidth / 2 - 1;
 }
+
+void clearFullLines(bool boardGrid[BoardHeight][BoardWidth]) {
+    for (int row = BoardHeight - 1; row >= 0;) {
+        bool isFull = true;
+        for (int col = 0; col < BoardWidth; col++) {
+            if (!boardGrid[row][col]) {
+                isFull = false;
+                break;
+            }
+        }
+
+        if (isFull) {
+            for (int tempRow = row; tempRow > 0; tempRow--) {
+                for (int col = 0; col < BoardWidth; col++) {
+                    boardGrid[tempRow][col] = boardGrid[tempRow - 1][col];
+                }
+            }
+            for (int col = 0; col < BoardWidth; col++) {
+                boardGrid[0][col] = false;
+            }
+        } else {
+            row--;
+        }
+    }
+} 

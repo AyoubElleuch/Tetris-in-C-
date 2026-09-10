@@ -16,3 +16,5 @@ void lockPiece(
     const bool piece[PieceHeight][PieceWidth],
     int& pieceRow,
     int& pieceCol);
+
+void clearFullLines(bool boardGrid[BoardHeight][BoardWidth]);

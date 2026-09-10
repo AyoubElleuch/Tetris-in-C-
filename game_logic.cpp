@@ -93,3 +93,36 @@ void chooseRandomPiece(bool piece[PieceHeight][PieceWidth]) {
         }
     }
 }
+
+bool validRotatePiece(
+    const bool boardGrid[BoardHeight][BoardWidth],
+    const bool piece[PieceHeight][PieceWidth],
+    int pieceRow,
+    int pieceCol) {
+    bool temp[PieceHeight][PieceWidth];
+    for (int row = 0; row < PieceHeight; row++) {
+        for (int col = 0; col < PieceWidth; col++) {
+            temp[row][col] = piece[row][col];
+        }
+    }
+    for (int row = 0; row < PieceHeight; row++) {
+        for (int col = 0; col < PieceWidth; col++) {
+            temp[row][col] = piece[PieceHeight - col - 1][row];
+        }
+    }
+    return canPlacePiece(boardGrid, temp, pieceRow, pieceCol);
+}
+
+void rotatePiece(bool piece[PieceHeight][PieceWidth]) {
+    bool temp[PieceHeight][PieceWidth];
+    for (int row = 0; row < PieceHeight; row++) {
+        for (int col = 0; col < PieceWidth; col++) {
+            temp[row][col] = piece[row][col];
+        }
+    }
+    for (int row = 0; row < PieceHeight; row++) {
+        for (int col = 0; col < PieceWidth; col++) {
+            piece[row][col] = temp[PieceHeight - col - 1][row];
+        }
+    }
+}

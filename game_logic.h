@@ -11,13 +11,13 @@ bool canPlacePiece(
     int candidateRow,
     int candidateCol);
     
-    void lockPiece(
+void lockPiece(
     bool boardGrid[BoardHeight][BoardWidth],
     const bool piece[PieceHeight][PieceWidth],
     int& pieceRow,
     int& pieceCol);
-    
-    void clearFullLines(bool boardGrid[BoardHeight][BoardWidth]);
+
+void clearFullLines(bool boardGrid[BoardHeight][BoardWidth]);
     
 bool isGameOver(
     const bool boardGrid[BoardHeight][BoardWidth],
@@ -29,3 +29,11 @@ void restartGame(
     int& pieceCol);
 
 void chooseRandomPiece(bool piece[PieceHeight][PieceWidth]);
+
+bool validRotatePiece(
+    const bool boardGrid[BoardHeight][BoardWidth],
+    const bool piece[PieceHeight][PieceWidth],
+    int pieceRow,
+    int pieceCol);
+
+void rotatePiece(bool piece[PieceHeight][PieceWidth]);

@@ -100,6 +100,10 @@ int main(){
             else if (event.type == SDL_KEYDOWN && !gameOver) {
                 // Test each requested move before changing the piece position.
                 switch (event.key.keysym.sym) {
+                    case SDLK_UP:
+                        if (validRotatePiece(boardGrid, piece, pieceRow, pieceCol))
+                            rotatePiece(piece);
+                        break;
                     case SDLK_LEFT:
                         if (canPlacePiece(boardGrid, piece, pieceRow, pieceCol - 1))
                             pieceCol--;

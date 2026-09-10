@@ -6,17 +6,16 @@
 #include "game_logic.h"
 #include "rendering.h"
 
-using namespace std;
-
 int main(){
     const int width = BoardWidth, height = BoardHeight, cell_size = 30;
     const int window_width = 800, window_height = 600;
     // Store settled cells separately from the currently falling piece.
     bool boardGrid[height][width] = { false };
 
-    // The initial piece is a square with a position in board coordinates.
-    bool piece[PieceHeight][PieceWidth] = { true, true, true, true };
+    bool piece[PieceHeight][PieceWidth] = {};
     int pieceRow = 0, pieceCol = width / 2 - 1;
+
+    chooseRandomPiece(piece);
 
     // Start the SDL video subsystem before creating any windows.
     const int initResult = SDL_Init(SDL_INIT_VIDEO);
@@ -75,6 +74,7 @@ int main(){
 
     const auto resetGame = [&]() {
         restartGame(boardGrid, pieceRow, pieceCol);
+        chooseRandomPiece(piece);
         gameOver = false;
         lastDropTime = SDL_GetTicks();
     };
@@ -114,6 +114,7 @@ int main(){
                         } else {
                             lockPiece(boardGrid, piece, pieceRow, pieceCol);
                             clearFullLines(boardGrid);
+                            chooseRandomPiece(piece);
                             gameOver = isGameOver(boardGrid, piece);
                         }
                         break;
@@ -129,6 +130,7 @@ int main(){
             } else {
                 lockPiece(boardGrid, piece, pieceRow, pieceCol);
                 clearFullLines(boardGrid);
+                chooseRandomPiece(piece);
                 gameOver = isGameOver(boardGrid, piece);
             }
             lastDropTime = currentTime;

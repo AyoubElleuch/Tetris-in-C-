@@ -1,4 +1,6 @@
 #include "game_logic.h"
+#include "pieces.h"
+#include <stdlib.h>
 
 bool canPlacePiece(
     const bool boardGrid[BoardHeight][BoardWidth],
@@ -81,4 +83,13 @@ void restartGame(
     }
     pieceRow = 0;
     pieceCol = BoardWidth / 2 - 1;
+}
+
+void chooseRandomPiece(bool piece[PieceHeight][PieceWidth]) {
+    int pieceIndex = rand() % 7;
+    for (int row = 0; row < PieceHeight; row++) {
+        for (int col = 0; col < PieceWidth; col++) {
+            piece[row][col] = pieces[pieceIndex][row][col];
+        }
+    }
 }
